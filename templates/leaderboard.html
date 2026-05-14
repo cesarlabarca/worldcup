@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Leaderboard</h1>
+    <p class="muted">Total points across all predictions</p>
+</div>
+
+{% if not rows %}
+<div class="empty-state">No scores yet. Results will appear after the first match.</div>
+{% endif %}
+
+<div class="leaderboard">
+    {% for row in rows %}
+    <div class="lb-row {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %} {% if row.username == user %}me{% endif %}">
+        <div class="lb-rank">{{ loop.index }}</div>
+        <div class="lb-user">
+            {{ row.username }}
+            {% if row.username == user %}<span class="you">YOU</span>{% endif %}
+        </div>
+        <div class="lb-points">{{ row.total_points or 0 }} <span class="muted">pts</span></div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

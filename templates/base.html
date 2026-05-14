@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}World Cup Predictor{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    {% if user %}
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/" class="brand">
+                <span class="logo">⚽</span>
+                <span>World Cup 2026</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="{% if active == 'home' %}active{% endif %}">Matches</a>
+                <a href="/my-predictions" class="{% if active == 'mine' %}active{% endif %}">My Predictions</a>
+                <a href="/standings" class="{% if active == 'standings' %}active{% endif %}">Standings</a>
+                <a href="/leaderboard" class="{% if active == 'leaderboard' %}active{% endif %}">Leaderboard</a>
+            </div>
+            <div class="nav-user">
+                <span class="username">{{ user }}</span>
+                <a href="/logout" class="btn-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}My Predictions{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>My Predictions</h1>
+    <p class="muted">{{ stats.total }} predictions • {{ stats.exact }} exact • {{ stats.correct }} correct outcomes • <strong>{{ stats.points }} pts</strong></p>
+</div>
+
+{% if not predictions %}
+<div class="empty-state">You haven't made any predictions yet. <a href="/">Start predicting →</a></div>
+{% endif %}
+
+<div class="match-list">
+    {% for p in predictions %}
+    <div class="match-card finished-{{ p.result_class }}">
+        <div class="match-meta">
+            <span class="match-num">Match {{ p.match_number }}</span>
+            <span class="match-stage">{{ p.stage|replace('_', ' ')|title }}</span>
+            <span class="match-time">{{ p.kickoff_at|replace('T', ' ') }}</span>
+        </div>
+
+        <div class="match-row">
+            <div class="team team-home">
+                {% if p.home_flag %}<img src="{{ p.home_flag }}" class="flag" alt="">{% endif %}
+                <span class="team-name">{{ p.home_display }}</span>
+            </div>
+
+            <div class="prediction-block">
+                <div class="prediction-line">
+                    <span class="label">My pick</span>
+                    <span class="score">{{ p.my_home }} : {{ p.my_away }}</span>
+                </div>
+                {% if p.real_home is not none %}
+                <div class="prediction-line">
+                    <span class="label">Final</span>
+                    <span class="score">{{ p.real_home }} : {{ p.real_away }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="team team-away">
+                <span class="team-name">{{ p.away_display }}</span>
+                {% if p.away_flag %}<img src="{{ p.away_flag }}" class="flag" alt="">{% endif %}
+            </div>
+
+            {% if p.points_earned is not none %}
+            <div class="points-badge {% if p.points_earned == 3 %}gold{% elif p.points_earned == 1 %}silver{% else %}zero{% endif %}">
+                +{{ p.points_earned }}
+            </div>
+            {% else %}
+            <div class="points-badge pending">—</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

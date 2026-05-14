@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Group Standings{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Group Standings</h1>
+    <p class="muted">Live standings calculated from real match results</p>
+</div>
+
+<div class="groups-grid">
+    {% for group in groups %}
+    <div class="group-card">
+        <div class="group-title">Group {{ group.name }}</div>
+        <table class="standings">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Team</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>D</th>
+                    <th>L</th>
+                    <th>GD</th>
+                    <th>Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in group.teams %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="team-cell">
+                        {% if team.flag_url %}<img src="{{ team.flag_url }}" class="flag-sm" alt="">{% endif %}
+                        {{ team.name }}
+                    </td>
+                    <td>{{ team.played }}</td>
+                    <td>{{ team.wins }}</td>
+                    <td>{{ team.draws }}</td>
+                    <td>{{ team.losses }}</td>
+                    <td>{{ team.gd }}</td>
+                    <td><strong>{{ team.points }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
