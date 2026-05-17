@@ -20,17 +20,18 @@
 {% endif %}
 
 <div class="match-list">
+    {% set ns = namespace(found=false) %}
     {% for match in matches %}
-    <div class="match-card {% if match.is_locked %}locked{% endif %}">
+    {% if match.real_home is none and not ns.found %}{% set ns.found = true %}<div id="upcoming-anchor" class="match-card {% if match.is_locked %}locked{% endif %}">{% else %}<div class="match-card {% if match.is_locked %}locked{% endif %}">{% endif %}
         <div class="match-meta">
             <span class="match-num">Match {{ match.match_number }}</span>
             {% if match.group_name %}<span class="match-group">Group {{ match.group_name }}</span>{% endif %}
-            <span class="match-time">{{ match.kickoff_at|replace('T', ' ') }}</span>
+            <span data-kickoff="{{ match.kickoff_at }}">{{ match.kickoff_at|replace('T', ' ') }}</span>
             {% if match.is_locked %}<span class="badge locked">LOCKED</span>{% endif %}
             {% if not match.is_confirmed %}<span class="badge pending">TEAMS TBD</span>{% endif %}
         </div>
 
-        <form action="/predict" method="post" class="match-row">
+        <form class="match-row predict-form" data-stage="{{ match.stage }}">
             <input type="hidden" name="match_id" value="{{ match.id }}">
 
             <div class="team team-home">
@@ -39,23 +40,24 @@
             </div>
 
             <div class="score-inputs">
-                <input type="number" name="home_score" min="0" max="20" 
+                <input type="number" name="home_score" min="0" max="20"
                        value="{{ match.my_home if match.my_home is not none else '' }}"
-                       placeholder="-"
+                       placeholder="–"
                        {% if match.is_locked or not match.is_confirmed %}disabled{% endif %}>
                 <span class="dash">:</span>
                 <input type="number" name="away_score" min="0" max="20"
                        value="{{ match.my_away if match.my_away is not none else '' }}"
-                       placeholder="-"
+                       placeholder="–"
                        {% if match.is_locked or not match.is_confirmed %}disabled{% endif %}>
             </div>
 
             <div class="team team-away">
-                <span class="team-name">{{ match.away_display }}</span>
                 {% if match.away_flag %}<img src="{{ match.away_flag }}" class="flag" alt="">{% endif %}
+                <span class="team-name">{{ match.away_display }}</span>
+                
             </div>
 
-            <button type="submit" class="btn-predict" 
+            <button type="submit" class="btn-predict"
                     {% if match.is_locked or not match.is_confirmed %}disabled{% endif %}>
                 {% if match.has_prediction %}Update{% else %}Predict{% endif %}
             </button>
@@ -63,7 +65,8 @@
 
         {% if match.real_home is not none %}
         <div class="real-result">
-            Final: <strong>{{ match.real_home }} - {{ match.real_away }}</strong>
+            <span>Final result</span>
+            <span class="result-score">{{ match.real_home }} : {{ match.real_away }}</span>
             {% if match.points_earned is not none %}
             <span class="points {% if match.points_earned == 3 %}gold{% elif match.points_earned == 1 %}silver{% else %}zero{% endif %}">
                 +{{ match.points_earned }} pts
@@ -74,4 +77,45 @@
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const anchor = document.getElementById('upcoming-anchor');
+if (anchor) anchor.scrollIntoView({ block: 'start' });
+
+document.querySelectorAll('.predict-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = form.querySelector('.btn-predict');
+        const inputs = form.querySelector('.score-inputs');
+        const originalText = btn.textContent.trim();
+
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+
+        try {
+            const res = await fetch('/predict', { method: 'POST', body: new FormData(form) });
+            if (res.ok) {
+                btn.textContent = 'Saved ✓';
+                inputs.classList.add('saved');
+                showToast('Prediction saved!');
+                setTimeout(() => {
+                    btn.textContent = 'Update';
+                    btn.disabled = false;
+                    inputs.classList.remove('saved');
+                }, 2000);
+            } else {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                showToast('Could not save — try again.');
+            }
+        } catch {
+            btn.textContent = originalText;
+            btn.disabled = false;
+            showToast('Network error — try again.');
+        }
+    });
+});
+</script>
 {% endblock %}

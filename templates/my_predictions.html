@@ -3,7 +3,25 @@
 {% block content %}
 <div class="page-header">
     <h1>My Predictions</h1>
-    <p class="muted">{{ stats.total }} predictions • {{ stats.exact }} exact • {{ stats.correct }} correct outcomes • <strong>{{ stats.points }} pts</strong></p>
+</div>
+
+<div class="stat-chips">
+    <div class="stat-chip">
+        <span class="chip-value">{{ stats.total }}</span>
+        <span class="chip-label">Predicted</span>
+    </div>
+    <div class="stat-chip chip-gold">
+        <span class="chip-value">{{ stats.exact }}</span>
+        <span class="chip-label">Exact</span>
+    </div>
+    <div class="stat-chip chip-silver">
+        <span class="chip-value">{{ stats.correct }}</span>
+        <span class="chip-label">Correct</span>
+    </div>
+    <div class="stat-chip chip-primary">
+        <span class="chip-value">{{ stats.points }}</span>
+        <span class="chip-label">Points</span>
+    </div>
 </div>
 
 {% if not predictions %}
@@ -16,7 +34,7 @@
         <div class="match-meta">
             <span class="match-num">Match {{ p.match_number }}</span>
             <span class="match-stage">{{ p.stage|replace('_', ' ')|title }}</span>
-            <span class="match-time">{{ p.kickoff_at|replace('T', ' ') }}</span>
+            <span data-kickoff="{{ p.kickoff_at }}">{{ p.kickoff_at|replace('T', ' ') }}</span>
         </div>
 
         <div class="match-row">
@@ -39,8 +57,8 @@
             </div>
 
             <div class="team team-away">
-                <span class="team-name">{{ p.away_display }}</span>
                 {% if p.away_flag %}<img src="{{ p.away_flag }}" class="flag" alt="">{% endif %}
+                <span class="team-name">{{ p.away_display }}</span>
             </div>
 
             {% if p.points_earned is not none %}

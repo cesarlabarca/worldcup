@@ -19,13 +19,15 @@
                     <th>W</th>
                     <th>D</th>
                     <th>L</th>
+                    <th>GF</th>
+                    <th>GA</th>
                     <th>GD</th>
                     <th>Pts</th>
                 </tr>
             </thead>
             <tbody>
                 {% for team in group.teams %}
-                <tr>
+                <tr {% if loop.index <= 2 %}class="qualifier"{% endif %}>
                     <td>{{ loop.index }}</td>
                     <td class="team-cell">
                         {% if team.flag_url %}<img src="{{ team.flag_url }}" class="flag-sm" alt="">{% endif %}
@@ -35,6 +37,8 @@
                     <td>{{ team.wins }}</td>
                     <td>{{ team.draws }}</td>
                     <td>{{ team.losses }}</td>
+                    <td>{{ team.gf }}</td>
+                    <td>{{ team.ga }}</td>
                     <td>{{ team.gd }}</td>
                     <td><strong>{{ team.points }}</strong></td>
                 </tr>

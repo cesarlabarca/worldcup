@@ -13,7 +13,12 @@
 <div class="leaderboard">
     {% for row in rows %}
     <div class="lb-row {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %} {% if row.username == user %}me{% endif %}">
-        <div class="lb-rank">{{ loop.index }}</div>
+        <div class="lb-rank">
+            {% if loop.index == 1 %}🥇
+            {% elif loop.index == 2 %}🥈
+            {% elif loop.index == 3 %}🥉
+            {% else %}{{ loop.index }}{% endif %}
+        </div>
         <div class="lb-user">
             {{ row.username }}
             {% if row.username == user %}<span class="you">YOU</span>{% endif %}

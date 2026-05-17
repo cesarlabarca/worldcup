@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}World Cup Predictor{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     {% if user %}
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <div class="nav-inner">
             <a href="/" class="brand">
                 <span class="logo">⚽</span>
@@ -24,6 +27,9 @@
                 <span class="username">{{ user }}</span>
                 <a href="/logout" class="btn-logout">Logout</a>
             </div>
+            <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
     {% endif %}
@@ -31,5 +37,42 @@
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // Hamburger toggle
+        const hamburger = document.getElementById('hamburger');
+        const navbar = document.getElementById('navbar');
+        if (hamburger) {
+            hamburger.addEventListener('click', () => navbar.classList.toggle('open'));
+        }
+
+        // Format ISO kickoff dates to local time
+        function formatMatchDates() {
+            document.querySelectorAll('[data-kickoff]').forEach(el => {
+                const iso = el.dataset.kickoff;
+                if (!iso) return;
+                const d = new Date(iso);
+                if (isNaN(d)) return;
+                const opts = { weekday: 'short', day: 'numeric', month: 'short' };
+                const datePart = d.toLocaleDateString(undefined, opts);
+                const timePart = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                el.textContent = `${datePart} · ${timePart}`;
+            });
+        }
+        formatMatchDates();
+
+        // Toast helper
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+        window.showToast = showToast;
+    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

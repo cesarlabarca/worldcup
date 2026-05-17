@@ -23,7 +23,7 @@
 body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     line-height: 1.5;
     min-height: 100vh;
 }
@@ -44,7 +44,7 @@ input, button {
     padding: 0 24px;
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 100;
 }
 
 .nav-inner {
@@ -96,6 +96,7 @@ input, button {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: auto;
 }
 
 .username {
@@ -115,6 +116,27 @@ input, button {
 .btn-logout:hover {
     color: var(--text);
     border-color: var(--muted);
+}
+
+.nav-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin-left: auto;
+    color: var(--muted);
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nav-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: all 0.2s;
 }
 
 /* ---------- Layout ---------- */
@@ -276,24 +298,33 @@ input, button {
 .match-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .match-card {
     background: var(--surface);
     border: 1px solid var(--border);
+    border-left: 3px solid transparent;
     border-radius: 12px;
-    padding: 14px 18px;
+    padding: 10px 14px;
     transition: border-color 0.15s;
 }
 
 .match-card:hover:not(.locked) {
-    border-color: var(--surface-2);
+    border-color: var(--border);
+    border-left-color: var(--primary);
 }
 
 .match-card.locked {
-    opacity: 0.7;
+    border-left-color: rgba(239, 83, 80, 0.4);
+    background: rgba(239, 83, 80, 0.03);
 }
+
+/* My Predictions result card borders */
+.match-card.finished-exact  { border-left-color: var(--gold); }
+.match-card.finished-correct { border-left-color: var(--silver); }
+.match-card.finished-wrong  { border-left-color: var(--danger); }
+.match-card.finished-pending { border-left-color: var(--border); }
 
 .match-meta {
     display: flex;
@@ -301,7 +332,7 @@ input, button {
     align-items: center;
     font-size: 12px;
     color: var(--muted);
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     flex-wrap: wrap;
 }
 
@@ -400,6 +431,13 @@ input, button {
     font-size: 16px;
     font-weight: 600;
     color: var(--text);
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+}
+
+.score-inputs input::-webkit-inner-spin-button,
+.score-inputs input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
 }
 
 .score-inputs input:focus {
@@ -410,7 +448,11 @@ input, button {
 .score-inputs input:disabled {
     background: var(--surface-2);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
+}
+
+.score-inputs.saved input {
+    border-color: var(--primary);
 }
 
 .dash {
@@ -441,18 +483,30 @@ input, button {
 }
 
 .real-result {
-    margin-top: 10px;
-    padding-top: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
     font-size: 13px;
     color: var(--muted);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
 }
 
-.real-result strong {
+.real-result .result-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-weight: 700;
+    font-size: 15px;
     color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
 }
 
 /* ---------- Points badge ---------- */
@@ -676,30 +730,185 @@ input, button {
     font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Stat chips ---------- */
+.stat-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 90px;
+}
+
+.stat-chip .chip-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.stat-chip .chip-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.stat-chip.chip-gold   .chip-value { color: var(--gold); }
+.stat-chip.chip-silver .chip-value { color: var(--silver); }
+.stat-chip.chip-primary .chip-value { color: var(--primary); }
+
+/* ---------- Toast ---------- */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 999;
+    animation: toast-in 0.2s ease, toast-out 0.3s ease 2s forwards;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0, 200, 83, 0.15);
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(8px); }
+}
+
+/* ---------- Standings qualifier ---------- */
+.standings tbody tr.qualifier td:first-child {
+    border-left: 3px solid var(--primary);
+    padding-left: 13px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 700px) {
-    .nav-inner {
-        gap: 16px;
+    .nav-hamburger {
+        display: flex;
     }
+
     .nav-links {
-        gap: 14px;
-        font-size: 13px;
+        display: none;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        padding: 12px 24px 16px;
+        gap: 0;
     }
+
+    .nav-links a {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 15px;
+    }
+
+    .nav-links a:last-child {
+        border-bottom: none;
+    }
+
+    .navbar.open .nav-links {
+        display: flex;
+    }
+
     .username {
         display: none;
     }
+
+    .match-card {
+        padding: 14px 16px;
+    }
+
     .match-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 4px;
     }
-    .team-home {
-        justify-content: flex-start;
-    }
+
     .score-inputs {
         justify-content: center;
     }
+
     .btn-predict {
+        grid-column: 1 / -1;
         width: 100%;
         padding: 10px;
+    }
+
+    .points-badge {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: auto;
+        padding: 6px 0;
+        border-top: 1px solid var(--border);
+        margin-top: 4px;
+    }
+
+    .prediction-block {
+        padding: 0 4px;
+    }
+
+    .team {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .team-home {
+        justify-content: center;
+    }
+
+    .team-name {
+        font-size: 12px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stat-chips {
+        gap: 8px;
+    }
+
+    .stat-chip {
+        flex: 1;
+        min-width: 70px;
+        padding: 8px 10px;
+    }
+
+    .stat-chip .chip-value {
+        font-size: 18px;
+    }
+
+    .toast {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        text-align: center;
     }
 }
