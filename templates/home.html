@@ -19,10 +19,19 @@
 <div class="empty-state">No matches in this stage yet.</div>
 {% endif %}
 
+{% if groups and stage == 'group' %}
+<div class="filter-bar">
+    <button class="filter-btn active" data-group="all">All</button>
+    {% for g in groups %}
+    <button class="filter-btn" data-group="{{ g }}">Group {{ g }}</button>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="match-list">
     {% set ns = namespace(found=false) %}
     {% for match in matches %}
-    {% if match.real_home is none and not ns.found %}{% set ns.found = true %}<div id="upcoming-anchor" class="match-card {% if match.is_locked %}locked{% endif %}">{% else %}<div class="match-card {% if match.is_locked %}locked{% endif %}">{% endif %}
+    {% if match.real_home is none and not ns.found %}{% set ns.found = true %}<div id="upcoming-anchor" class="match-card {% if match.is_locked %}locked{% endif %}" data-group="{{ match.group_name or '' }}">{% else %}<div class="match-card {% if match.is_locked %}locked{% endif %}" data-group="{{ match.group_name or '' }}">{% endif %}
         <div class="match-meta">
             <span class="match-num">Match {{ match.match_number }}</span>
             {% if match.group_name %}<span class="match-group">Group {{ match.group_name }}</span>{% endif %}
@@ -83,6 +92,17 @@
 <script>
 const anchor = document.getElementById('upcoming-anchor');
 if (anchor) anchor.scrollIntoView({ block: 'start' });
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const g = btn.dataset.group;
+        document.querySelectorAll('.match-list .match-card').forEach(card => {
+            card.style.display = (g === 'all' || card.dataset.group === g) ? '' : 'none';
+        });
+    });
+});
 
 document.querySelectorAll('.predict-form').forEach(form => {
     form.addEventListener('submit', async e => {

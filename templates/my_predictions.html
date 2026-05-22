@@ -28,9 +28,18 @@
 <div class="empty-state">You haven't made any predictions yet. <a href="/">Start predicting →</a></div>
 {% endif %}
 
-<div class="match-list">
+{% if groups %}
+<div class="filter-bar">
+    <button class="filter-btn active" data-group="all">All</button>
+    {% for g in groups %}
+    <button class="filter-btn" data-group="{{ g }}">Group {{ g }}</button>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="predictions-grid" id="predictions-grid">
     {% for p in predictions %}
-    <div class="match-card finished-{{ p.result_class }}">
+    <div class="match-card finished-{{ p.result_class }}" data-group="{{ p.group_name or '' }}">
         <div class="match-meta">
             <span class="match-num">Match {{ p.match_number }}</span>
             <span class="match-stage">{{ p.stage|replace('_', ' ')|title }}</span>
@@ -72,4 +81,17 @@
     </div>
     {% endfor %}
 </div>
+
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const g = btn.dataset.group;
+        document.querySelectorAll('#predictions-grid .match-card').forEach(card => {
+            card.style.display = (g === 'all' || card.dataset.group === g) ? '' : 'none';
+        });
+    });
+});
+</script>
 {% endblock %}

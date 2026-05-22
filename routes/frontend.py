@@ -118,13 +118,16 @@ def home(request: Request, stage: str = "group"):
         d["has_prediction"] = d["my_home"] is not None
         matches.append(d)
 
+    groups = sorted({m["group_name"] for m in matches if m.get("group_name")})
+
     conn.close()
 
     return templates.TemplateResponse(request, "home.html", {
         "user": user["sub"],
         "active": "home",
         "stage": stage,
-        "matches": matches
+        "matches": matches,
+        "groups": groups,
     })
 
 
@@ -184,7 +187,7 @@ def my_predictions(request: Request):
     me = conn.execute("SELECT id FROM users WHERE username = ?", (user["sub"],)).fetchone()
 
     rows = conn.execute("""
-        SELECT p.*, m.match_number, m.stage, m.kickoff_at,
+        SELECT p.*, m.match_number, m.stage, m.group_name, m.kickoff_at,
                m.home_score AS real_home, m.away_score AS real_away,
                m.home_placeholder, m.away_placeholder,
                ht.name AS home_name, ht.flag_url AS home_flag,
@@ -222,11 +225,14 @@ def my_predictions(request: Request):
         total += 1
         predictions.append(d)
 
+    groups = sorted({p["group_name"] for p in predictions if p.get("group_name")})
+
     conn.close()
     return templates.TemplateResponse(request, "my_predictions.html", {
         "user": user["sub"],
         "active": "mine",
         "predictions": predictions,
+        "groups": groups,
         "stats": {"total": total, "exact": exact, "correct": correct, "points": points}
     })
 

@@ -14,12 +14,12 @@ pip install -r requirements.txt
 # or
 uv sync
 
-# Populate initial tournament data (run once)
-python scripts/load_teams.py
-python scripts/load_matches.py
+# Populate initial tournament data (run ONCE only — scripts append without deduplication)
+.venv/bin/python scripts/load_teams.py
+.venv/bin/python scripts/load_matches.py
 
 # Start dev server
-python -m uvicorn main:app --reload
+.venv/bin/uvicorn main:app --reload --port 8000
 # App runs at http://localhost:8000
 ```
 
@@ -60,6 +60,12 @@ Triggered in `routes/admin.py` when an admin submits final scores:
 1. Lock a match (`/api/admin/lock`) — prevents new predictions
 2. Confirm knockout teams (`/api/admin/confirm-match`) — assigns teams to placeholder slots
 3. Enter final score (`/api/admin/result`) — calculates and stores points
+
+### Group filter UI
+
+Both `/` (matches) and `/my-predictions` display a **group filter bar** (All | Group A | Group B …). It is powered by `matches.group_name` and implemented as client-side JS — no extra queries. `routes/frontend.py` extracts a sorted `groups` list from the fetched matches and passes it to both `home.html` and `my_predictions.html`. The filter bar only renders on the Group Stage tab of the matches page.
+
+> **Data integrity note:** `scripts/load_teams.py` and `scripts/load_matches.py` have no deduplication guard — running them more than once inserts duplicate rows. If duplicates appear, keep the lowest `id` per `match_number` and delete the rest.
 
 ## No Test Suite
 

@@ -301,6 +301,36 @@ input, button {
     gap: 8px;
 }
 
+.predictions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Group filter bar */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.filter-btn {
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+.filter-btn.active,
+.filter-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
 .match-card {
     background: var(--surface);
     border: 1px solid var(--border);
