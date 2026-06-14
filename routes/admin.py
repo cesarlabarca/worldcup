@@ -84,12 +84,13 @@ def calculate_points(conn, match_id: int, real_home: int, real_away: int):
         "SELECT * FROM predictions WHERE match_id = ?", (match_id,)
     ).fetchall()
 
+    def outcome(h, a):
+        return (h > a) - (h < a)   # 1 = home win, 0 = draw, -1 = away win
+
     for pred in predictions:
         if pred["home_score"] == real_home and pred["away_score"] == real_away:
             points = 3
-        elif (pred["home_score"] - pred["away_score"]) == (real_home - real_away):
-            points = 1
-        elif (pred["home_score"] > pred["away_score"]) == (real_home > real_away):
+        elif outcome(pred["home_score"], pred["away_score"]) == outcome(real_home, real_away):
             points = 1
         else:
             points = 0
