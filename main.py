@@ -1,12 +1,34 @@
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from db import get_db
+from locking import lock_due_matches
 from routes.auth import router as auth_router
 from routes.predictions import router as predictions_router
 from routes.admin import router as admin_router
 from routes.frontend import router as frontend_router
 
-app = FastAPI()
+
+async def _lock_loop():
+    while True:
+        await asyncio.sleep(60)
+        lock_due_matches()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    lock_due_matches()
+    task = asyncio.create_task(_lock_loop())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Static files (CSS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
