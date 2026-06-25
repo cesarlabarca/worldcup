@@ -336,3 +336,104 @@ def standings_page(request: Request):
         "active": "standings",
         "groups": group_list
     })
+
+
+# ---------- stats ----------
+
+@router.get("/stats", response_class=HTMLResponse)
+def stats_page(request: Request):
+    user = get_user_from_cookie(request)
+    if not user:
+        return RedirectResponse("/login", status_code=302)
+
+    conn = get_db()
+
+    users = conn.execute("SELECT id, username FROM users ORDER BY username").fetchall()
+    groups = [g["group_name"] for g in conn.execute("""
+        SELECT DISTINCT group_name FROM matches
+        WHERE stage = 'group' AND group_name IS NOT NULL
+        ORDER BY group_name
+    """).fetchall()]
+
+    breakdown_rows = conn.execute("""
+        SELECT p.user_id, m.group_name, p.points_earned
+        FROM predictions p
+        JOIN matches m ON p.match_id = m.id
+        WHERE m.stage = 'group' AND m.group_name IS NOT NULL
+    """).fetchall()
+
+    cells = {
+        u["id"]: {g: {"points": 0, "exact": 0, "with_points": 0, "decided": 0} for g in groups}
+        for u in users
+    }
+    for r in breakdown_rows:
+        if r["points_earned"] is None:
+            continue
+        cell = cells[r["user_id"]][r["group_name"]]
+        cell["decided"] += 1
+        cell["points"] += r["points_earned"]
+        if r["points_earned"] == 3:
+            cell["exact"] += 1
+        if r["points_earned"] in (1, 3):
+            cell["with_points"] += 1
+
+    rows = []
+    for u in users:
+        user_cells = cells[u["id"]]
+        total = sum(c["points"] for c in user_cells.values())
+        eligible = [(g, c) for g, c in user_cells.items() if c["decided"] > 0]
+        if len(eligible) < 2:
+            best_group = worst_group = None
+        else:
+            best_group = sorted(eligible, key=lambda gc: (-gc[1]["points"], gc[0]))[0][0]
+            worst_group = sorted(eligible, key=lambda gc: (gc[1]["points"], gc[0]))[0][0]
+        rows.append({
+            "username": u["username"],
+            "cells": user_cells,
+            "total": total,
+            "best_group": best_group,
+            "worst_group": worst_group,
+        })
+    rows.sort(key=lambda r: (-r["total"], r["username"]))
+
+    exact_rows = conn.execute("""
+        SELECT p.user_id, u.username, m.id AS match_id, m.match_number, m.stage, m.group_name, m.kickoff_at,
+               m.home_score, m.away_score, m.home_placeholder, m.away_placeholder,
+               ht.name AS home_name, ht.flag_url AS home_flag,
+               at.name AS away_name, at.flag_url AS away_flag
+        FROM predictions p
+        JOIN matches m ON p.match_id = m.id
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN teams ht ON m.home_team_id = ht.id
+        LEFT JOIN teams at ON m.away_team_id = at.id
+        WHERE p.points_earned = 3
+        ORDER BY m.kickoff_at DESC, m.match_number DESC
+    """).fetchall()
+
+    cards = {}
+    for r in exact_rows:
+        match_id = r["match_id"]
+        if match_id not in cards:
+            cards[match_id] = {
+                "home_display": r["home_name"] or r["home_placeholder"] or "TBD",
+                "away_display": r["away_name"] or r["away_placeholder"] or "TBD",
+                "home_flag": r["home_flag"],
+                "away_flag": r["away_flag"],
+                "real_home": r["home_score"],
+                "real_away": r["away_score"],
+                "stage": r["stage"],
+                "group_name": r["group_name"],
+                "kickoff_at": r["kickoff_at"],
+                "usernames": [],
+            }
+        cards[match_id]["usernames"].append(r["username"])
+
+    conn.close()
+
+    return templates.TemplateResponse(request, "stats.html", {
+        "user": user["sub"],
+        "active": "stats",
+        "groups": groups,
+        "rows": rows,
+        "cards": list(cards.values()),
+    })
