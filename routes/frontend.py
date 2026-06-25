@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -6,6 +8,7 @@ from auth import hash_password, verify_password, create_token, verify_token
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+templates.env.globals["css_version"] = int(os.path.getmtime("static/style.css"))
 
 
 # ---------- helpers ----------
