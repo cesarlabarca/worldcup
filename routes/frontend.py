@@ -431,6 +431,27 @@ def stats_page(request: Request):
             }
         cards[match_id]["usernames"].append(r["username"])
 
+    # Performance chart: cumulative points after each decided match, chronologically,
+    # across all stages (not just group stage) so the line keeps moving into knockouts.
+    decided_match_ids = [m["id"] for m in conn.execute("""
+        SELECT id FROM matches
+        WHERE home_score IS NOT NULL AND away_score IS NOT NULL
+        ORDER BY kickoff_at ASC, match_number ASC
+    """).fetchall()]
+
+    points_by_match = {}
+    for r in conn.execute("SELECT user_id, match_id, points_earned FROM predictions WHERE points_earned IS NOT NULL").fetchall():
+        points_by_match[(r["user_id"], r["match_id"])] = r["points_earned"]
+
+    chart_series = []
+    for u in users:
+        cumulative = 0
+        data = []
+        for match_id in decided_match_ids:
+            cumulative += points_by_match.get((u["id"], match_id), 0)
+            data.append(cumulative)
+        chart_series.append({"username": u["username"], "data": data})
+
     conn.close()
 
     return templates.TemplateResponse(request, "stats.html", {
@@ -439,4 +460,6 @@ def stats_page(request: Request):
         "groups": groups,
         "rows": rows,
         "cards": list(cards.values()),
+        "chart_labels": list(range(1, len(decided_match_ids) + 1)),
+        "chart_series": chart_series,
     })

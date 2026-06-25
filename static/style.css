@@ -854,6 +854,15 @@ input, button {
     color: var(--text);
 }
 
+.chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    height: 360px;
+    margin-bottom: 28px;
+}
+
 .stats-table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -1148,5 +1157,10 @@ input, button {
 
     .exact-cards {
         grid-template-columns: 1fr;
+    }
+
+    .chart-wrap {
+        height: 260px;
+        padding: 12px;
     }
 }

@@ -7,6 +7,14 @@
     <p class="muted stats-legend"><strong>Total</strong> = points earned in that group &nbsp;·&nbsp; <strong>Exact</strong> = exact-score predictions &nbsp;·&nbsp; <strong>Scored</strong> = matches with any points (1 or 3)</p>
 </div>
 
+{% if not chart_labels %}
+<div class="empty-state">No results yet — the performance graph will appear once matches are scored.</div>
+{% else %}
+<div class="chart-wrap">
+    <canvas id="performance-chart"></canvas>
+</div>
+{% endif %}
+
 {% if not groups %}
 <div class="empty-state">No group-stage matches loaded yet.</div>
 {% else %}
@@ -107,5 +115,53 @@
     </div>
     {% endfor %}
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if chart_labels %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const chartLabels = {{ chart_labels | tojson }};
+const chartSeries = {{ chart_series | tojson }};
+const palette = ['#00c853', '#ffc107', '#42a5f5', '#ef5350', '#ab47bc', '#26c6da', '#ff7043', '#8bc34a'];
+
+new Chart(document.getElementById('performance-chart'), {
+    type: 'line',
+    data: {
+        labels: chartLabels,
+        datasets: chartSeries.map((s, i) => ({
+            label: s.username,
+            data: s.data,
+            borderColor: palette[i % palette.length],
+            backgroundColor: palette[i % palette.length],
+            tension: 0.25,
+            pointRadius: 2,
+            borderWidth: 2,
+        })),
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { labels: { color: '#e8e9ed' } },
+        },
+        scales: {
+            x: {
+                title: { display: true, text: 'Matches played', color: '#8a8d99' },
+                ticks: { color: '#8a8d99' },
+                grid: { color: '#2a2d38' },
+            },
+            y: {
+                title: { display: true, text: 'Points', color: '#8a8d99' },
+                beginAtZero: true,
+                ticks: { color: '#8a8d99' },
+                grid: { color: '#2a2d38' },
+            },
+        },
+    },
+});
+</script>
 {% endif %}
 {% endblock %}
