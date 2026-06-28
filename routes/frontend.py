@@ -89,7 +89,7 @@ def logout():
 # ---------- home ----------
 
 @router.get("/", response_class=HTMLResponse)
-def home(request: Request, stage: str = "group"):
+def home(request: Request, stage: str = "round_of_32"):
     user = get_user_from_cookie(request)
     if not user:
         return RedirectResponse("/login", status_code=302)
