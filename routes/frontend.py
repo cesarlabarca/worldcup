@@ -431,13 +431,16 @@ def stats_page(request: Request):
             }
         cards[match_id]["usernames"].append(r["username"])
 
-    # Performance chart: cumulative points after each decided match, chronologically,
-    # across all stages (not just group stage) so the line keeps moving into knockouts.
-    decided_match_ids = [m["id"] for m in conn.execute("""
-        SELECT id FROM matches
+    # Performance chart: cumulative points after each decided match, in match order
+    # (by match_number, the true play sequence), across all stages (not just group
+    # stage) so the line keeps moving into knockouts.
+    decided_matches = conn.execute("""
+        SELECT id, match_number FROM matches
         WHERE home_score IS NOT NULL AND away_score IS NOT NULL
-        ORDER BY kickoff_at ASC, match_number ASC
-    """).fetchall()]
+        ORDER BY match_number ASC
+    """).fetchall()
+    decided_match_ids = [m["id"] for m in decided_matches]
+    decided_match_numbers = [m["match_number"] for m in decided_matches]
 
     points_by_match = {}
     for r in conn.execute("SELECT user_id, match_id, points_earned FROM predictions WHERE points_earned IS NOT NULL").fetchall():
@@ -460,6 +463,6 @@ def stats_page(request: Request):
         "groups": groups,
         "rows": rows,
         "cards": list(cards.values()),
-        "chart_labels": list(range(1, len(decided_match_ids) + 1)),
+        "chart_labels": decided_match_numbers,
         "chart_series": chart_series,
     })
